@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Pure builder: one deduplicated event fans out to 6 rows
- * (MINUTE/HOUR/DAY x AD/ORG). No Flink runtime needed -> easy unit tests.
+ * Pure builder: one deduplicated event fans out to 10 rows
+ * (MINUTE/HOUR/DAY/MONTH/YEAR x AD/ORG). No Flink runtime needed -> easy unit tests.
  */
 public final class AggregationBuilder {
 
@@ -21,7 +21,9 @@ public final class AggregationBuilder {
         Instant minute = WindowTruncator.truncateToMinute(ts);
         Instant hour = WindowTruncator.truncateToHour(ts);
         Instant day = WindowTruncator.truncateToDay(ts);
-        List<AggregateRecord> out = new ArrayList<>(6);
+        Instant month = WindowTruncator.truncateToMonth(ts);
+        Instant year = WindowTruncator.truncateToYear(ts);
+        List<AggregateRecord> out = new ArrayList<>(10);
         out.add(new AggregateRecord("MINUTE", "AD", e.getAdId(), e.getAdOrgId(),
                 minute, minute.plus(Duration.ofMinutes(1)), 1));
         out.add(new AggregateRecord("MINUTE", "ORG", e.getAdOrgId(), e.getAdOrgId(),
@@ -34,7 +36,23 @@ public final class AggregationBuilder {
                 day, day.plus(Duration.ofDays(1)), 1));
         out.add(new AggregateRecord("DAY", "ORG", e.getAdOrgId(), e.getAdOrgId(),
                 day, day.plus(Duration.ofDays(1)), 1));
+        out.add(new AggregateRecord("MONTH", "AD", e.getAdId(), e.getAdOrgId(),
+                month, nextMonth(month), 1));
+        out.add(new AggregateRecord("MONTH", "ORG", e.getAdOrgId(), e.getAdOrgId(),
+                month, nextMonth(month), 1));
+        out.add(new AggregateRecord("YEAR", "AD", e.getAdId(), e.getAdOrgId(),
+                year, nextYear(year), 1));
+        out.add(new AggregateRecord("YEAR", "ORG", e.getAdOrgId(), e.getAdOrgId(),
+                year, nextYear(year), 1));
         return out;
+    }
+
+    static Instant nextMonth(Instant monthStart) {
+        return monthStart.atZone(java.time.ZoneOffset.UTC).plusMonths(1).toInstant();
+    }
+
+    static Instant nextYear(Instant yearStart) {
+        return yearStart.atZone(java.time.ZoneOffset.UTC).plusYears(1).toInstant();
     }
 
     public static String upsertSql() {
