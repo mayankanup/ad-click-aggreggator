@@ -21,7 +21,7 @@
     <module>ad-click-common</module>
     <module>ad-click-producer</module>
     <module>ad-click-flink-job</module>
-    <!-- Story 5+: ad-click-service -->
+    <module>ad-click-service</module>
   </modules>
 
   <properties>
