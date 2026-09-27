@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Ad Click Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>body{font-family:sans-serif;margin:2rem}table{border-collapse:collapse;margin-top:1rem}td,th{border:1px solid #ccc;padding:.4rem .7rem}</style>
+</head>
+<body>
+<h1>Ad Click Dashboard</h1>
+<form method="get" action="/">
+  <label>Granularity
+    <select name="granularity">
+      <option th:each="g : ${ {'MINUTE','HOUR','DAY','MONTH','YEAR'} }" th:value="${g}" th:text="${g}" th:selected="${g == granularity}"></option>
+    </select>
+  </label>
+  <label>Dimension
+    <select name="dimensionType">
+      <option th:each="d : ${ {'AD','ORG'} }" th:value="${d}" th:text="${d}" th:selected="${d == dimensionType}"></option>
+    </select>
+  </label>
+  <label>Id <input name="dimensionId" th:value="${dimensionId}"/></label>
+  <button type="submit">Load</button>
+</form>
+
+<canvas id="chart" height="120"></canvas>
+
+<table>
+  <thead><tr><th>Window start</th><th>Window end</th><th>Clicks</th></tr></thead>
+  <tbody>
+  <tr th:each="r : ${rows}">
+    <td th:text="${r.windowStart}"></td>
+    <td th:text="${r.windowEnd}"></td>
+    <td th:text="${r.clickCount}"></td>
+  </tr>
+  </tbody>
+</table>
+
+<script th:inline="javascript">
+  const rows = /*[[${rows}]]*/ [];
+  const labels = rows.map(r => r.windowStart).reverse();
+  const data = rows.map(r => r.clickCount).reverse();
+  new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: { labels: labels, datasets: [{ label: 'Clicks', data: data }] },
+    options: { responsive: true }
+  });
+</script>
+</body>
+</html>
