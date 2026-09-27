@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Pure builder: one deduplicated event fans out to 10 rows
  * (MINUTE/HOUR/DAY/MONTH/YEAR x AD/ORG). No Flink runtime needed -> easy unit tests.
+ * Window bounds are epoch millis (see AggregateRecord).
  */
 public final class AggregationBuilder {
 
@@ -18,32 +19,34 @@ public final class AggregationBuilder {
 
     public static List<AggregateRecord> build(AdClickEvent e) {
         Instant ts = Instant.ofEpochMilli(e.getEventTimeMillis());
-        Instant minute = WindowTruncator.truncateToMinute(ts);
-        Instant hour = WindowTruncator.truncateToHour(ts);
-        Instant day = WindowTruncator.truncateToDay(ts);
-        Instant month = WindowTruncator.truncateToMonth(ts);
-        Instant year = WindowTruncator.truncateToYear(ts);
+        long minute = WindowTruncator.truncateToMinute(ts).toEpochMilli();
+        long hour = WindowTruncator.truncateToHour(ts).toEpochMilli();
+        long day = WindowTruncator.truncateToDay(ts).toEpochMilli();
+        Instant monthStart = WindowTruncator.truncateToMonth(ts);
+        Instant yearStart = WindowTruncator.truncateToYear(ts);
+        long month = monthStart.toEpochMilli();
+        long year = yearStart.toEpochMilli();
         List<AggregateRecord> out = new ArrayList<>(10);
         out.add(new AggregateRecord("MINUTE", "AD", e.getAdId(), e.getAdOrgId(),
-                minute, minute.plus(Duration.ofMinutes(1)), 1));
+                minute, minute + Duration.ofMinutes(1).toMillis(), 1));
         out.add(new AggregateRecord("MINUTE", "ORG", e.getAdOrgId(), e.getAdOrgId(),
-                minute, minute.plus(Duration.ofMinutes(1)), 1));
+                minute, minute + Duration.ofMinutes(1).toMillis(), 1));
         out.add(new AggregateRecord("HOUR", "AD", e.getAdId(), e.getAdOrgId(),
-                hour, hour.plus(Duration.ofHours(1)), 1));
+                hour, hour + Duration.ofHours(1).toMillis(), 1));
         out.add(new AggregateRecord("HOUR", "ORG", e.getAdOrgId(), e.getAdOrgId(),
-                hour, hour.plus(Duration.ofHours(1)), 1));
+                hour, hour + Duration.ofHours(1).toMillis(), 1));
         out.add(new AggregateRecord("DAY", "AD", e.getAdId(), e.getAdOrgId(),
-                day, day.plus(Duration.ofDays(1)), 1));
+                day, day + Duration.ofDays(1).toMillis(), 1));
         out.add(new AggregateRecord("DAY", "ORG", e.getAdOrgId(), e.getAdOrgId(),
-                day, day.plus(Duration.ofDays(1)), 1));
+                day, day + Duration.ofDays(1).toMillis(), 1));
         out.add(new AggregateRecord("MONTH", "AD", e.getAdId(), e.getAdOrgId(),
-                month, nextMonth(month), 1));
+                month, nextMonth(monthStart).toEpochMilli(), 1));
         out.add(new AggregateRecord("MONTH", "ORG", e.getAdOrgId(), e.getAdOrgId(),
-                month, nextMonth(month), 1));
+                month, nextMonth(monthStart).toEpochMilli(), 1));
         out.add(new AggregateRecord("YEAR", "AD", e.getAdId(), e.getAdOrgId(),
-                year, nextYear(year), 1));
+                year, nextYear(yearStart).toEpochMilli(), 1));
         out.add(new AggregateRecord("YEAR", "ORG", e.getAdOrgId(), e.getAdOrgId(),
-                year, nextYear(year), 1));
+                year, nextYear(yearStart).toEpochMilli(), 1));
         return out;
     }
 

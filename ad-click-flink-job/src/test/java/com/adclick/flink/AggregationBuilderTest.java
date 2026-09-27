@@ -34,13 +34,13 @@ class AggregationBuilderTest {
         AggregateRecord monthAd = rows.stream()
                 .filter(r -> r.getGranularity().equals("MONTH") && r.getDimensionType().equals("AD"))
                 .findFirst().orElseThrow();
-        assertEquals(Instant.parse("2026-01-01T00:00:00Z"), monthAd.getWindowStart());
-        assertEquals(Instant.parse("2026-02-01T00:00:00Z"), monthAd.getWindowEnd());
+        assertEquals(Instant.parse("2026-01-01T00:00:00Z").toEpochMilli(), monthAd.getWindowStartMillis());
+        assertEquals(Instant.parse("2026-02-01T00:00:00Z").toEpochMilli(), monthAd.getWindowEndMillis());
         AggregateRecord yearAd = rows.stream()
                 .filter(r -> r.getGranularity().equals("YEAR") && r.getDimensionType().equals("AD"))
                 .findFirst().orElseThrow();
-        assertEquals(Instant.parse("2026-01-01T00:00:00Z"), yearAd.getWindowStart());
-        assertEquals(Instant.parse("2027-01-01T00:00:00Z"), yearAd.getWindowEnd());
+        assertEquals(Instant.parse("2026-01-01T00:00:00Z").toEpochMilli(), yearAd.getWindowStartMillis());
+        assertEquals(Instant.parse("2027-01-01T00:00:00Z").toEpochMilli(), yearAd.getWindowEndMillis());
     }
 
     @Test

@@ -2,3 +2,8 @@ target/
 .idea/
 *.iml/
 .env
+# local validation artifacts (never commit)
+cp.txt
+fullcp.txt
+flink-*.log
+*.log
