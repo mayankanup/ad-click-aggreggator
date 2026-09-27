@@ -37,8 +37,8 @@ public class PostgresUpsertSink extends RichSinkFunction<AggregateRecord> {
         ps.setString(2, r.getDimensionType());
         ps.setString(3, r.getDimensionId());
         ps.setString(4, r.getOrgId());
-        ps.setTimestamp(5, Timestamp.from(r.getWindowStart()));
-        ps.setTimestamp(6, Timestamp.from(r.getWindowEnd()));
+        ps.setTimestamp(5, new Timestamp(r.getWindowStartMillis()));
+        ps.setTimestamp(6, new Timestamp(r.getWindowEndMillis()));
         ps.setLong(7, r.getCount());
         ps.executeUpdate();
     }
