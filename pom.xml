@@ -19,7 +19,8 @@
 
   <modules>
     <module>ad-click-common</module>
-    <!-- Story 2+: ad-click-producer, ad-click-flink-job, ad-click-service -->
+    <module>ad-click-producer</module>
+    <!-- Story 3+: ad-click-flink-job, ad-click-service -->
   </modules>
 
   <properties>
